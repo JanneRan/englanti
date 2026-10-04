@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="28" fill="#237a40"/><g transform="translate(19 22) scale(.75)">
+<polygon points="12,48 20,6 54,30" fill="#e8913a"/><polygon points="108,48 100,6 66,30" fill="#e8913a"/>
+<polygon points="21,38 25,17 41,29" fill="#f2a1a1"/><polygon points="99,38 95,17 79,29" fill="#f2a1a1"/>
+<ellipse cx="60" cy="64" rx="49" ry="40" fill="#e8913a"/>
+<path d="M60 26v13M47 28l3 11M73 28l-3 11M13 66h10M14 78l9-3M107 66H97M106 78l-9-3" fill="none" stroke="#b9621a" stroke-width="4" stroke-linecap="round"/>
+<ellipse cx="60" cy="80" rx="21" ry="14" fill="#fff0dc"/>
+<ellipse cx="42" cy="61" rx="5.2" ry="6.8" fill="#2b1b12"/><circle cx="43.8" cy="58.4" r="1.9" fill="#fff"/>
+<ellipse cx="78" cy="61" rx="5.2" ry="6.8" fill="#2b1b12"/><circle cx="79.8" cy="58.4" r="1.9" fill="#fff"/>
+<polygon points="54.5,72 65.5,72 60,79" fill="#f2a1a1" stroke="#2b1b12" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M60 79v3M60 82q-6 6-12 2M60 82q6 6 12 2" fill="none" stroke="#2b1b12" stroke-width="2.4" stroke-linecap="round"/>
+<path d="M28 80l-18-4M28 85l-18 5M92 80l18-4M92 85l18 5" fill="none" stroke="#2b1b12" stroke-width="1.6" stroke-linecap="round" opacity=".55"/>
+</g></svg>
