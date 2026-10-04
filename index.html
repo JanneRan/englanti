@@ -219,6 +219,12 @@ h2.sec{font-size:1.4rem;margin-bottom:4px}
 .rate .paw.on:nth-child(2){animation-delay:.15s}
 .rate .paw.on:nth-child(3){animation-delay:.3s}
 .fb .cat{width:44px;height:auto}
+.vlist{display:grid;gap:10px;margin-top:12px}
+.vrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.vsub{font:600 1.05rem var(--f-display);margin-top:18px;color:var(--muted)}
+.scene{display:flex;align-items:center;gap:12px;font-size:clamp(3rem,15vw,4.4rem);line-height:1.1}
+.scene .who{font-size:.8em}
+.scene .at{font:600 1.1rem var(--f-display);color:var(--muted)}
 .shake{animation:shake .4s}
 @keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
@@ -323,7 +329,21 @@ const PEXTRA=[
   ["I'm fine.","Voin hyvin.","😊","/aim fain/",0],
   ["but","mutta","↔️","/bʌt/",0],
   ["I don't like","minä en pidä","👎","/ai dəunt laik/",0],
-  ["a dog","koira","🐶","/dɔg/",1]
+  ["a dog","koira","🐶","/dɔg/",1],
+  ["he","hän (poika)","👦","/hi:/",0],
+  ["he is","hän (poika) on","👦","/hi: iz/",0],
+  ["he's","hän (poika) on","👦","/hi:z/",0],
+  ["he is not","hän (poika) ei ole","🙅","/hi: iz nɔt/",0],
+  ["he isn't","hän (poika) ei ole","🙅","/hi: iznt/",0],
+  ["she is","hän (tyttö) on","👧","/ʃi: iz/",0],
+  ["she is not","hän (tyttö) ei ole","🙅","/ʃi: iz nɔt/",0],
+  ["it's","se on","☝️","/its/",0],
+  ["it is not","se ei ole","🙅","/it iz nɔt/",0],
+  ["it isn't","se ei ole","🙅","/it iznt/",0],
+  ["She is at the cinema.","Hän on elokuvateatterissa.","🎬","",0],
+  ["He isn't at the airport.","Hän ei ole lentokentällä.","✈️","",0],
+  ["River is at the zoo.","River on eläintarhassa.","🦁","",0],
+  ["Rose isn't at the café.","Rose ei ole kahvilassa.","☕","",0]
 ];
 const placeExtra=PEXTRA.map((p,i)=>({id:12+i,en:p[0],fi:p[1],e:p[2],p:p[3],pic:!!p[4],opp:null,art:'',g:1}));
 /* kuva, lauseen alku, lauseen loppu, oikea sana, suomennos */
@@ -364,7 +384,7 @@ const TOPICS={
     title:'Vastakohdat englanniksi',
     lead:'Opettele 12 sanaa pareittain: small ja big, short ja tall, young ja old, weak ja strong, slow ja fast, quiet ja loud. Lisäksi 21 sanaa ja lausetta kohdasta Kuuntele ja toista. Oikeat vastaukset antavat kissalle tassuja.',
     sentDesc:'Täytä puuttuva sana lauseeseen.',sentPrompt:'Mikä sana puuttuu?'},
-  places:{name:'Paikat',words:placeWords.concat(placeExtra),sents:S_PLACES,hasOpp:false,
+  places:{name:'Paikat',words:placeWords.concat(placeExtra),sents:S_PLACES,hasOpp:false,verb:true,
     extra:{title:'Kuuntele ja toista',lead:'Lisää sanoja ja lauseita kysymiseen ja vastaamiseen: where, she is, I can go and see… Napauta kuullaksesi ne.'},
     title:'Paikat englanniksi',
     lead:'Opettele 12 paikkaa: school, cinema, shop, library, hotel, café, restaurant, zoo, airport, hospital, museum ja stadium. Harjoittele myös kysymystä Where is…? ja vastausta He is at the… Lisäksi 34 sanaa ja lausetta kohdasta Kuuntele ja toista.',
@@ -482,13 +502,22 @@ const TILES=[
   ['memory','c2','Muistipeli','Etsi englanninkielinen sana ja sen suomennos.','<rect x="4" y="4" width="10" height="10" rx="2"/><rect x="18" y="4" width="10" height="10" rx="2"/><rect x="4" y="18" width="10" height="10" rx="2"/><rect x="18" y="18" width="10" height="10" rx="2"/>'],
   ['match','c3','Vastakohdat','Yhdistä sanat, jotka tarkoittavat päinvastaista.','<circle cx="8" cy="16" r="5"/><circle cx="24" cy="16" r="5"/><path d="M13 16h6"/>','opp'],
   ['quiz','c4','Visa','10 kysymystä: kuva, kuuntelu ja suomennos.','<circle cx="16" cy="16" r="12"/><path d="M12 13a4 4 0 1 1 6 3.4c-1.3.8-2 1.5-2 3"/><path d="M16 24v.5"/>'],
+  ['isnt','c3',"Is vai isn't",'Katso kuvaa ja valitse is tai isn\'t.','<circle cx="16" cy="16" r="12"/><path d="M10 16l4 4 8-8"/>','places'],
   ['sent','c5','Lauseet','','<path d="M5 6h22a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H15l-6 5v-5H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>']
 ];
-const VIEWS={learn:()=>learn(0),memory:()=>memory(),match:()=>match(),quiz:()=>quiz(),sent:()=>sent()};
+const VIEWS={learn:()=>learn(0),memory:()=>memory(),match:()=>match(),quiz:()=>quiz(),sent:()=>sent(),isnt:()=>isnt()};
 const wcard=w=>`<button class="wcard" data-a="say" data-w="${w.id}"><span class="e">${w.e}</span><span class="tx"><b>${lab(w)}</b><small>${w.fi}</small>${w.p?`<small class="ipa">${w.p}</small>`:''}</span></button>`;
 
+const VERB=[['he','hän (poika)'],['she','hän (tyttö)'],['it','se']];
+const vc=(e,b,sm,say)=>`<button class="wcard" data-a="sayt" data-t="${say}"><span class="e">${e}</span><span class="tx"><b>${b}</b><small>${sm}</small></span></button>`;
+function verbHtml(){
+  const rows=VERB.map(v=>`<div class="vrow">${vc('✅',`${v[0]} is · ${v[0]}'s`,`${v[1]} on`,`${v[0]} is`)}${vc('❌',`${v[0]} is not · ${v[0]} isn't`,`${v[1]} ei ole`,`${v[0]} is not`)}</div>`).join('');
+  const EX=[['She is at the cinema.','Hän on elokuvateatterissa.','✅'],["He isn't at the airport.",'Hän ei ole lentokentällä.','❌'],['River is at the zoo.','River on eläintarhassa.','✅'],["Rose isn't at the café.",'Rose ei ole kahvilassa.','❌']];
+  return `<section style="margin-top:30px"><h2 class="sec">Olla-verbi</h2><p class="lead" style="margin-bottom:0">Hän-sanan voi korvata myös nimellä tai nimityksellä. Napauta ja kuuntele.</p><div class="vlist">${rows}</div><div class="vsub">Esimerkkejä</div><div class="vlist">${EX.map(x=>vc(x[2],x[0],x[1],x[0])).join('')}</div></section>`;
+}
+
 function home(){
-  const tiles=TILES.filter(t=>t[5]!=='opp'||T.hasOpp);
+  const tiles=TILES.filter(t=>!t[5]||(t[5]==='opp'&&T.hasOpp)||(t[5]==='places'&&!T.hasOpp));
   $app.innerHTML=`
   <section class="hero">
     ${catSvg('normal',104,true)}
@@ -501,11 +530,13 @@ function home(){
     <p class="lead" style="margin-bottom:0">Napauta sanaa, niin kuulet sen ääntämisen.</p>
     <div class="prows">${PAGES.map(i=>`<div class="prow">${wcard(W[i*2])}<span class="arr" aria-hidden="true">${T.hasOpp?'↔':''}</span>${wcard(W[i*2+1])}</div>`).join('')}</div>
   </section>
+  ${T.verb?verbHtml():''}
   ${T.extra?`<section style="margin-top:30px"><h2 class="sec">${T.extra.title}</h2><p class="lead" style="margin-bottom:0">${T.extra.lead}</p><div class="wgrid">${W.slice(12).map(w=>wcard(w)).join('')}</div></section>`:''}`;
   setAct({
     topic:el=>{setTopic(el.dataset.k);go(home)},
     open:el=>go(VIEWS[el.dataset.k]),
-    say:el=>say(lab(W[+el.dataset.w]),true)
+    say:el=>say(lab(W[+el.dataset.w]),true),
+    sayt:el=>say(el.dataset.t,true)
   });
 }
 
@@ -687,6 +718,48 @@ function sent(){
       if(right){score++;good();addStars(1)}else{el.classList.add('bad');bad()}
       $app.querySelector('#fb').innerHTML=`${right?catSvg('happy',44):''}<span class="${right?'okt':'badt'}">${right?'Miau! Oikein!':'Ei aivan.'}</span><span class="tr">${fi}</span><button class="btn sm" data-a="nxt">${n===N-1?'Tulokset':'Seuraava'}</button>`;
       say(`${a.replace(/<br>/g,' ')} ${ans}${b}`);
+      act.nxt=advance;
+    }});
+  }
+  ask();
+}
+
+/* ---------- Is vai isn't ---------- */
+const PRON=[['He','Hän','👦'],['She','Hän','👧'],['It','Se','🐱']];
+const INES={school:'koulussa',cinema:'elokuvateatterissa',shop:'kaupassa',library:'kirjastossa',hotel:'hotellissa','café':'kahvilassa',restaurant:'ravintolassa',zoo:'eläintarhassa',airport:'lentokentällä',hospital:'sairaalassa',museum:'museossa',stadium:'stadionilla'};
+function isnt(){
+  const N=10,t=tk,core=placeWords.slice(0,12);
+  let n=0,score=0,locked=false,last='';
+  const qs=[];
+  while(qs.length<N){
+    const pr=PRON[Math.floor(Math.random()*3)],real=core[Math.floor(Math.random()*12)],truth=Math.random()<.5;
+    const said=truth?real:sample(core.filter(x=>x!==real),1)[0];
+    const key=pr[0]+real.en+said.en;
+    if(key===last)continue;
+    last=key;qs.push({pr,real,said,truth});
+  }
+  const advance=()=>{n++;if(n>=N)result({title:"Is vai isn't: valmis!",big:`${score} / ${N}`,rating:rate(score/N),again:isnt});else ask()};
+  function ask(){
+    locked=false;
+    const q=qs[n],ans=q.truth?'is':"isn't";
+    $app.innerHTML=topbar("Is vai isn't",`${n+1} / ${N}`)+
+      `<div class="progress"><i style="width:${n/N*100}%"></i></div>
+      <div class="qbox"><div class="scene"><span class="who">${q.pr[2]}</span><span class="at">at</span><span>${q.real.e}</span></div>
+      <p class="sentence">${q.pr[0]} <span class="blank" id="blank">&nbsp;</span> at the ${q.said.en}.</p>
+      <p class="prompt">Katso kuvaa. Valitse is tai isn't.</p></div>
+      <div class="opts"><button class="opt" data-a="ans" data-v="is">is</button><button class="opt" data-a="ans" data-v="isn't">isn't</button></div>
+      <div class="fb" id="fb" aria-live="polite"></div>`;
+    setAct({ans:el=>{
+      if(locked)return;
+      locked=true;
+      const right=el.dataset.v===ans;
+      const blank=$app.querySelector('#blank');
+      blank.textContent=ans;blank.classList.add(right?'ok':'bad');
+      $app.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.v===ans)x.classList.add('ok')});
+      if(right){score++;good();addStars(1)}else{el.classList.add('bad');bad()}
+      const fi=`${q.pr[1]} ${q.truth?'on':'ei ole'} ${INES[q.said.en]}.`;
+      $app.querySelector('#fb').innerHTML=`${right?catSvg('happy',44):''}<span class="${right?'okt':'badt'}">${right?'Miau! Oikein!':'Ei aivan.'}</span><span class="tr">${fi}</span><button class="btn sm" data-a="nxt">${n===N-1?'Tulokset':'Seuraava'}</button>`;
+      say(`${q.pr[0]} ${ans} at the ${q.said.en}`);
       act.nxt=advance;
     }});
   }
