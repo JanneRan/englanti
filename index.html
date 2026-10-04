@@ -268,6 +268,9 @@ OPP.forEach((p,i)=>{
   oppWords.push({id:i*2,en:p[0],fi:p[1],e:p[2],opp:i*2+1,art:''});
   oppWords.push({id:i*2+1,en:p[3],fi:p[4],e:p[5],opp:i*2,art:''});
 });
+/* sanat, jotka voivat sopia samaan kuvaan tai lauseeseen, eivät ole toistensa vääriä vastauksia */
+const CONF={small:'A',short:'A',young:'A',big:'B',tall:'B',strong:'B',old:'B',weak:'C',slow:'C',quiet:'C',fast:'D',loud:'D'};
+oppWords.forEach(w=>{w.conf=CONF[w.en]});
 /* Kuuntele ja toista -sanat: englanti, suomi, kuva, ääntäminen, onko kuvasta apua visassa */
 const EXTRA=[
   ['a superhero','supersankari','🦸','/su:pəhiərəu/',1],
@@ -283,7 +286,7 @@ const EXTRA=[
   ['a turn','vuoro','🔄','/tə:n/',0],
   ['OK','okei','👌','/əu\'kei/',0],
   ["Don't peek!",'Älä kurki!','🙈','/dəunt pi:k/',0],
-  ["No, I'm not.",'Ei, en minä ole.','🙅','/nəu aim nɒt/',0],
+  ["No, I'm not.",'Ei, en minä ole.','🙅','/nəu aim nɔt/',0],
   ['or','tai','🔀','/ɔ:(r)/',0],
   ['Yes, I am.','Kyllä, minä olen.','🙆','/jes ai æm/',0],
   ['I','minä','🧍','/ai/',0],
@@ -352,7 +355,7 @@ const S_OPP=[
   ['🐈','The cat is not slow. It is','.','fast','Kissa ei ole hidas. Se on nopea.'],
   ['🐭','The mouse is','.','small','Hiiri on pieni.'],
   ['🐘','The elephant is not small. It is','.','big','Norsu ei ole pieni. Se on iso.'],
-  ['🍄','The mushroom is','.','short','Sieni on lyhyt.'],
+  ['✏️','The pencil is','.','short','Lyijykynä on lyhyt.'],
   ['🦒','The giraffe is not short. It is','.','tall','Kirahvi ei ole lyhyt. Se on pitkä.'],
   ['👶','The baby is','.','young','Vauva on nuori.'],
   ['👵','Grandma is not young. She is','.','old','Mummo ei ole nuori. Hän on vanha.'],
@@ -365,8 +368,8 @@ const S_OPP=[
 ];
 const S_PLACES=[
   ['🐱','Where is the cat?<br>It is at the','.','shop','Missä kissa on? Se on kaupassa.'],
-  ['🏫','Where is Mia?<br>She is at the','.','school','Missä Mia on? Hän on koulussa.'],
-  ['🎬',"Where is Ben?<br>He isn't at the school.<br>He is at the",'.','cinema','Missä Ben on? Hän ei ole koulussa. Hän on elokuvateatterissa.'],
+  ['🏫','Where is Mia?<br>She is at','.','school','Missä Mia on? Hän on koulussa.'],
+  ['🎬',"Where is Ben?<br>He isn't at school.<br>He is at the",'.','cinema','Missä Ben on? Hän ei ole koulussa. Hän on elokuvateatterissa.'],
   ['🛍️','Where is Mum?<br>She is at the','.','shop','Missä äiti on? Hän on kaupassa.'],
   ['📚','Where is Sam?<br>He is at the','.','library','Missä Sam on? Hän on kirjastossa.'],
   ['🏨','Where is Grandpa?<br>He is at the','.','hotel','Missä ukki on? Hän on hotellissa.'],
@@ -387,7 +390,7 @@ const TOPICS={
   places:{name:'Paikat',words:placeWords.concat(placeExtra),sents:S_PLACES,hasOpp:false,verb:true,
     extra:{title:'Kuuntele ja toista',lead:'Lisää sanoja ja lauseita kysymiseen ja vastaamiseen: where, she is, I can go and see… Napauta kuullaksesi ne.'},
     title:'Paikat englanniksi',
-    lead:'Opettele 12 paikkaa: school, cinema, shop, library, hotel, café, restaurant, zoo, airport, hospital, museum ja stadium. Harjoittele myös kysymystä Where is…? ja vastausta He is at the… Lisäksi 34 sanaa ja lausetta kohdasta Kuuntele ja toista.',
+    lead:'Opettele 12 paikkaa: school, cinema, shop, library, hotel, café, restaurant, zoo, airport, hospital, museum ja stadium. Harjoittele myös kysymystä Where is…? ja vastausta He is at the… Lisäksi 48 sanaa ja lausetta kohdasta Kuuntele ja toista.',
     sentDesc:'Missä he ovat? Täytä puuttuva paikka.',sentPrompt:'Missä hän on?'}
 };
 
@@ -409,7 +412,8 @@ const PAGES=[0,1,2,3,4,5];
 const lab=w=>(w.art?w.art+' ':'')+w.en;
 const cl=t=>t.length>16?' long xl':t.length>11?' long':'';
 const nPages=()=>Math.ceil(W.length/2);
-const distract=(w,n)=>{const ex=w.opp!=null?[W[w.opp]]:[];return ex.concat(sample(W.filter(x=>x.id!==w.id&&x.id!==w.opp&&x.fi!==w.fi&&x.en!==w.en&&(x.g||0)===(w.g||0)),n-ex.length))};
+const distract=(w,n,skip)=>{const ex=w.opp!=null?[W[w.opp]]:[];return ex.concat(sample(W.filter(x=>x.id!==w.id&&x.id!==w.opp&&x.fi!==w.fi&&x.en!==w.en&&(x.g||0)===(w.g||0)&&!(w.conf&&x.conf===w.conf)&&!(skip&&skip(x))),n-ex.length))};
+const atw=en=>en==='school'?en:'the '+en;
 
 function say(text,force){
   if(!canSpeak||(!soundOn&&!force))return;
@@ -702,7 +706,7 @@ function sent(){
     locked=false;
     const [e,a,b,ans,fi]=qs[n];
     const w=W.find(x=>x.en===ans);
-    const os=shuffle([w,...distract(w,2)]);
+    const os=shuffle([w,...(w.opp!=null?[W[w.opp]]:distract(w,2,x=>x.en==='school'))]);
     $app.innerHTML=topbar('Lauseet',`${n+1} / ${N}`)+
       `<div class="progress"><i style="width:${n/N*100}%"></i></div>
       <div class="qbox"><div class="bigE">${e}</div><p class="sentence">${a} <span class="blank" id="blank">&nbsp;</span>${b}</p><p class="prompt">${T.sentPrompt}</p></div>
@@ -745,7 +749,7 @@ function isnt(){
     $app.innerHTML=topbar("Is vai isn't",`${n+1} / ${N}`)+
       `<div class="progress"><i style="width:${n/N*100}%"></i></div>
       <div class="qbox"><div class="scene"><span class="who">${q.pr[2]}</span><span class="at">at</span><span>${q.real.e}</span></div>
-      <p class="sentence">${q.pr[0]} <span class="blank" id="blank">&nbsp;</span> at the ${q.said.en}.</p>
+      <p class="sentence">${q.pr[0]} <span class="blank" id="blank">&nbsp;</span> at ${atw(q.said.en)}.</p>
       <p class="prompt">Katso kuvaa. Valitse is tai isn't.</p></div>
       <div class="opts"><button class="opt" data-a="ans" data-v="is">is</button><button class="opt" data-a="ans" data-v="isn't">isn't</button></div>
       <div class="fb" id="fb" aria-live="polite"></div>`;
@@ -759,7 +763,7 @@ function isnt(){
       if(right){score++;good();addStars(1)}else{el.classList.add('bad');bad()}
       const fi=`${q.pr[1]} ${q.truth?'on':'ei ole'} ${INES[q.said.en]}.`;
       $app.querySelector('#fb').innerHTML=`${right?catSvg('happy',44):''}<span class="${right?'okt':'badt'}">${right?'Miau! Oikein!':'Ei aivan.'}</span><span class="tr">${fi}</span><button class="btn sm" data-a="nxt">${n===N-1?'Tulokset':'Seuraava'}</button>`;
-      say(`${q.pr[0]} ${ans} at the ${q.said.en}`);
+      say(`${q.pr[0]} ${ans} at ${atw(q.said.en)}`);
       act.nxt=advance;
     }});
   }
